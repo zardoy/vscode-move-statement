@@ -1,0 +1,42 @@
+{
+    "name": "move-statement",
+    "displayName": "Move Statement",
+    "publisher": "zardoy",
+    "version": "0.0.0-dev",
+    "license": "MIT",
+    "preview": true,
+    "icon": "assets/icon.png",
+    "categories": [
+        "Other"
+    ],
+    "contributes": {
+        "commands": [
+            {
+                "command": "moveStatementUp",
+                "title": "Move Statement Up"
+            },
+            {
+                "command": "moveStatementDown",
+                "title": "Move Statement Down"
+            }
+        ]
+    },
+    "activationEvents": [
+        "onCommands"
+    ],
+    "scripts": {
+        "start": "vscode-framework start",
+        "lint": "eslint src/**"
+    },
+    "dependencies": {
+        "vscode-framework": "^0.0.18"
+    },
+    "devDependencies": {
+        "@types/node": "^17.0.23",
+        "@types/vscode": "^1.65.0",
+        "@zardoy/tsconfig": "^1.5.0",
+        "eslint": "^8.11.0",
+        "eslint-config-zardoy": "^0.2.11",
+        "typescript": "^4.6.2"
+    }
+}

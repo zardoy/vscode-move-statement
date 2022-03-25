@@ -1,0 +1,7 @@
+{
+    "extends": "@zardoy/tsconfig/node",
+    "compilerOptions": {},
+    "include": [
+        "src"
+    ]
+}

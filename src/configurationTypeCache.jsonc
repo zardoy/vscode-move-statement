@@ -1,0 +1,60 @@
+// GENERATED. DON'T EDIT MANUALLY
+// md5hash: fcd2e7378eff80e722c5ffcb15900eb3
+{
+    "type": "object",
+    "properties": {
+        "supportedLanguages": {
+            "description": "Map: language - supported kinds (leave empty to enable for all)",
+            "default": {
+                "js": [
+                    "Property"
+                ]
+            },
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "Array",
+                                "Boolean",
+                                "Class",
+                                "Constant",
+                                "Constructor",
+                                "Enum",
+                                "EnumMember",
+                                "Event",
+                                "Field",
+                                "File",
+                                "Function",
+                                "Interface",
+                                "Key",
+                                "Method",
+                                "Module",
+                                "Namespace",
+                                "Null",
+                                "Number",
+                                "Object",
+                                "Operator",
+                                "Package",
+                                "Property",
+                                "String",
+                                "Struct",
+                                "TypeParameter",
+                                "Variable"
+                            ],
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "required": [
+        "supportedLanguages"
+    ]
+}
