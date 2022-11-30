@@ -19,7 +19,16 @@
                 "command": "moveStatementDown",
                 "title": "Move Statement Down"
             }
-        ]
+        ],
+        "configurationDefaults": {
+            "[json]": {
+                "moveStatement.supportedKinds": "*",
+                "moveStatement.builtinCommaHandling.enabled": true
+            },
+            "[typescript][typescriptreact][javascriptreact][javascript]": {
+                "moveStatement.builtinCommaHandling.enabled": true
+            }
+        }
     },
     "activationEvents": [
         "onCommands"
@@ -29,6 +38,7 @@
         "lint": "eslint src/**"
     },
     "dependencies": {
+        "@zardoy/vscode-utils": "^0.0.47",
         "vscode-framework": "^0.0.18"
     },
     "devDependencies": {
@@ -38,5 +48,15 @@
         "eslint": "^8.11.0",
         "eslint-config-zardoy": "^0.2.11",
         "typescript": "^4.6.2"
+    },
+    "prettier": {
+        "semi": false,
+        "singleQuote": true,
+        "proseWrap": "never",
+        "tabWidth": 4,
+        "trailingComma": "all",
+        "arrowParens": "avoid",
+        "printWidth": 160,
+        "endOfLine": "auto"
     }
 }

@@ -9,6 +9,7 @@ out
 .nuxt
 .cache
 src/generated.ts
+src/configurationTypeCache.jsonc
 
 coverage
 *.lcov

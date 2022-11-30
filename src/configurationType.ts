@@ -2,12 +2,32 @@ import * as vscode from 'vscode'
 
 type SymbolKind = keyof typeof vscode.SymbolKind | number
 
-// const d: SnippetType = ''
-
 export type Configuration = {
+    // todo set default to [] (disabled by default for all langs)
     /**
      * Map: language - supported kinds (leave empty to enable for all)
-     * @default { "js": ["Property"] }
+     * @default *
      * */
-    supportedLanguages: { [language: string]: SymbolKind[] }
+    supportedKinds: SymbolKind[] | '*'
+    /**
+     * Do not move statements if they have different symbol kinds. Recommended (at least for js)
+     * @default false
+     */
+    rejectDifferentKinds: boolean
+    // todo implement!
+    /**
+     * @default true
+     */
+    // pullSurroundedContent: boolean
+    /**
+     * @default false
+     */
+    'builtinCommaHandling.enabled': boolean
+    /**
+     * @uniqueItems
+     * @default ["json", "javascript", "javascriptreact", "typescript", "typescriptreact"]
+     */
+    // 'builtinCommaHandling.languages': string[]
+    /** @default true */
+    // apiChangesImprovements: boolean,
 }
