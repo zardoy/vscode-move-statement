@@ -126,37 +126,14 @@ export const activate = () => {
                 return content
             }
 
-            // const linesDiff = swapItem.range.start.line - curRange.start.line
-            // const swapRange = new vscode.Range(swapRange.start.with(undefined, 0), swapRange.end.with(undefined, Number.POSITIVE_INFINITY))
-            // const swapLinesText = document.getText(swapRange)
-            await editor.edit(
-                edit => {
-                    // edit.insert(currentLinesRange.start, swapLinesText)
-                    // edit.insert(swapRange.start, currentLinesContent)
+            await editor.edit(edit => {
+                if (endsComma || swapEndsComma) handlePrevContentComma(edit)
 
-                    if (endsComma || swapEndsComma) handlePrevContentComma(edit)
+                edit.delete(currentLinesRemoveRange)
 
-                    edit.delete(currentLinesRemoveRange)
-
-                    if (moveDirection === -1) edit.insert(swapRange.start.with(undefined, 0), `${newContentHandled()}\n${surroundedEmptyLinesContent}`)
-                    else edit.insert(swapRange.end.with(undefined, Number.POSITIVE_INFINITY), `\n${surroundedEmptyLinesContent}${newContentHandled()}`)
-                },
-                // {
-                //     undoStopBefore: false,
-                //     undoStopAfter: false,
-                // },
-            )
-            // it doesn't work in naive way
-            // await editor.edit(
-            //     edit => {
-            //         edit.delete(currentLinesRange)
-            //         edit.delete(swapRange)
-            //     },
-            //     {
-            //         undoStopBefore: false,
-            //         undoStopAfter: true,
-            //     },
-            // )
+                if (moveDirection === -1) edit.insert(swapRange.start.with(undefined, 0), `${newContentHandled()}\n${surroundedEmptyLinesContent}`)
+                else edit.insert(swapRange.end.with(undefined, Number.POSITIVE_INFINITY), `\n${surroundedEmptyLinesContent}${newContentHandled()}`)
+            })
             newSelections.push(new vscode.Selection(selection.start.translate(linesDiff), selection.end.translate(linesDiff)))
         }
 
