@@ -7,17 +7,16 @@ TL;DR:
 
 > Experimental VS Code extension for moving statements using document outline (aka [breadcrumbs](https://code.visualstudio.com/docs/editor/editingevolved#_breadcrumbs)) knowledge. That's why it is language-independent (if your language has outline support), but it can't be 100% accurate in all cases.
 
-This way mainly created (and works well) for JSON and HTML (including vue templates), properties in any language.
+This way mainly created (and works well) for JSON and HTML (Vue and other declarative languages). And for literal properties in any language.
 
-In JavaScript/TypeScript:
+Also in JavaScript/TypeScript:
 
-- properties
 - const & type, interface and other declarations
 - JSX elements (with [TypeScript Essential Plugins](https://marketplace.visualstudio.com/items?itemName=zardoy.ts-essential-plugins) & `"tsEssentialPlugins.patchOutline": true`)
 
 ## Bind Commands
 
-There are not default keybindings, however you can (and probably should) add them:
+There are no default keybindings, however you can (and probably should) set them:
 
 In `keybindings.json` (`> Preferences: Open Keyboard Shortcuts (JSON)`):
 

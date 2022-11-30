@@ -5,7 +5,8 @@ type SymbolKind = keyof typeof vscode.SymbolKind | number
 export type Configuration = {
     // todo set default to [] (disabled by default for all langs)
     /**
-     * Map: language - supported kinds (leave empty to enable for all)
+     * Supported kinds to check on current item to move (leave empty to disable language support)
+     * By default * - enabled for all
      * @default *
      * */
     supportedKinds: SymbolKind[] | '*'
