@@ -5,6 +5,7 @@
     "version": "0.0.0-dev",
     "license": "MIT",
     "preview": true,
+    "description": "Move statements in any language!",
     "icon": "assets/icon.png",
     "categories": [
         "Other"
