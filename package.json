@@ -6,7 +6,7 @@
     "license": "MIT",
     "preview": true,
     "description": "Move statements in any language!",
-    "icon": "assets/icon.png",
+    "icon": "resources/icon.png",
     "categories": [
         "Other"
     ],
