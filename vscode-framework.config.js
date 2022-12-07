@@ -13,6 +13,18 @@ const config = {
             return {}
         },
     ],
+    consoleStatements: false,
+    target: {
+        desktop: true,
+        web: true,
+    },
+    esbuild: {
+        production: {
+            defineEnv: {
+                EXTENSION_BOOTSTRAP_CONFIG: 'null',
+            },
+        },
+    },
 }
 
 module.exports = config

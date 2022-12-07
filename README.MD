@@ -7,7 +7,7 @@ TL;DR:
 
 > Experimental VS Code extension for moving statements using document outline (aka [breadcrumbs](https://code.visualstudio.com/docs/editor/editingevolved#_breadcrumbs)) knowledge. That's why it is language-independent (if your language has outline support), but it can't be 100% accurate in all cases.
 
-This way mainly created (and works well) for JSON and HTML (Vue and other declarative languages). And for literal properties in any language.
+This way mainly created as replacement for *Move Line* commands and works well for JSON, HTML/Vue and other declarative languages. And for literal properties in any language.
 
 Also in JavaScript/TypeScript:
 
