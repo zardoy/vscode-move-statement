@@ -19,6 +19,14 @@
             {
                 "command": "moveStatementDown",
                 "title": "Move Statement Down"
+            },
+            {
+                "command": "copyStatementUp",
+                "title": "Copy Statement Up"
+            },
+            {
+                "command": "copyStatementDown",
+                "title": "Copy Statement Down"
             }
         ],
         "configurationDefaults": {

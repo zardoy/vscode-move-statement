@@ -1,15 +1,16 @@
 import * as vscode from 'vscode'
-import { CommandHandler, registerAllExtensionCommands, Settings } from 'vscode-framework'
+import { CommandHandler, registerExtensionCommand, RegularCommands, Settings } from 'vscode-framework'
+import copyStatement from './copyStatement'
 import moveStatement from './moveStatement'
 
 // todo self-building postfixes!
 export const activate = () => {
     const mainCommandHandler: CommandHandler = async ({ command }) => {
-        const upDirectionCommandNames = new Set(['moveStatementUp', 'copyStatementUp'])
-        const direction = upDirectionCommandNames.has(command) ? -1 : 1
-
         const editor = vscode.window.activeTextEditor
         if (editor === undefined) return
+
+        const upDirectionCommandNames = new Set(['moveStatementUp', 'copyStatementUp'])
+        const direction = upDirectionCommandNames.has(command) ? -1 : 1
 
         const { document, selections, selection } = editor
         const configuration = vscode.workspace.getConfiguration(process.env.IDS_PREFIX, document)
@@ -17,6 +18,10 @@ export const activate = () => {
         const rejectDifferentKinds = configuration.get<Settings['rejectDifferentKinds']>('rejectDifferentKinds')!
 
         const builtinCommaHandling = configuration.get<Settings['builtinCommaHandling.enabled']>('builtinCommaHandling.enabled')!
+        const { handler, affectingConfiguration } = command.startsWith('copy')
+            ? { handler: copyStatement, affectingConfiguration: { builtinCommaHandling } }
+            : { handler: moveStatement, affectingConfiguration: { builtinCommaHandling, rejectDifferentKinds } }
+
         if (supportedKinds.length === 0) return
         const outline: vscode.DocumentSymbol[] = await vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', document.uri)
         const newSelections: vscode.Selection[] = []
@@ -60,7 +65,7 @@ export const activate = () => {
             if (!match) continue
 
             // eslint-disable-next-line no-await-in-loop
-            const linesDiff = await moveStatement(editor, direction, match, { rejectDifferentKinds, builtinCommaHandling })
+            const linesDiff = await handler(editor, direction, match, affectingConfiguration)
 
             newSelections.push(new vscode.Selection(startPos.translate(linesDiff), endPos.translate(linesDiff)))
         }
@@ -69,8 +74,6 @@ export const activate = () => {
         editor.revealRange(selection)
     }
 
-    registerAllExtensionCommands({
-        moveStatementDown: mainCommandHandler,
-        moveStatementUp: mainCommandHandler,
-    })
+    const existingCommands: Array<keyof RegularCommands> = ['moveStatementDown', 'moveStatementUp', 'copyStatementUp', 'copyStatementDown']
+    for (const command of existingCommands) registerExtensionCommand(command, mainCommandHandler)
 }

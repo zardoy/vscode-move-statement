@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import { offsetPosition } from '@zardoy/vscode-utils/build/position'
+import { expandPosWithEol, getCommaHandledContent, getWhitespaceLines } from './shared'
 
 export default async (
     editor: vscode.TextEditor,
@@ -10,11 +11,11 @@ export default async (
               isCurrentLast: boolean
               isNextLast: boolean
           },
-    relatedSettings: { rejectDifferentKinds: boolean; builtinCommaHandling: boolean },
+    relatedSettings: { rejectDifferentKinds?: boolean; builtinCommaHandling?: boolean },
 ) => {
     // const { current } = match
     const curRange = match.current.range
-    const { rejectDifferentKinds, builtinCommaHandling } = relatedSettings
+    const { rejectDifferentKinds = false, builtinCommaHandling = false } = relatedSettings
     const { document } = editor
 
     const swap = direction === 1 ? match.next : match.prev
@@ -80,43 +81,4 @@ export default async (
         else edit.insert(swapRange.end.with(undefined, Number.POSITIVE_INFINITY), `\n${surroundedEmptyLinesContent}${newContentHandled()}`)
     })
     return (swapRange.end.line - swapRange.start.line + linesBetween) * direction
-}
-
-const getCommaHandledContent = (content: string) => {
-    const contentClean = content.replace(/[\n\s]+$/, '')
-    return {
-        contentClean,
-        endsComma: contentClean.endsWith(','),
-    }
-}
-
-const expandPosWithEol = (direction: -1 | 1, pos: vscode.Position, document: vscode.TextDocument) => {
-    if (direction === -1) {
-        const prevLine = getLineSafe(document, pos.line - 1)
-        return prevLine?.range.end ?? pos
-    }
-
-    return document.lineAt(pos).rangeIncludingLineBreak.end
-}
-
-const getWhitespaceLines = (lineNum: number, direction: 1 | -1, document: vscode.TextDocument) => {
-    const lines: string[] = []
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-        lineNum += direction
-        const line = getLineSafe(document, lineNum)
-        if (!line || !line.isEmptyOrWhitespace) break
-        // keep whitespaces as is, not our problem
-        lines.push(line.text)
-    }
-
-    return lines
-}
-
-const getLineSafe = (document: vscode.TextDocument, line: number) => {
-    try {
-        return document.lineAt(line)
-    } catch {
-        return null
-    }
 }
