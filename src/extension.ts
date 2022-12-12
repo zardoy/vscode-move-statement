@@ -1,25 +1,26 @@
-/* eslint-disable no-await-in-loop */
 import * as vscode from 'vscode'
-import { offsetPosition } from '@zardoy/vscode-utils/build/position'
 import { CommandHandler, registerAllExtensionCommands, Settings } from 'vscode-framework'
+import moveStatement from './moveStatement'
 
 // todo self-building postfixes!
 export const activate = () => {
     const mainCommandHandler: CommandHandler = async ({ command }) => {
-        const moveDirection = command === 'moveStatementUp' ? -1 : 1
+        const upDirectionCommandNames = new Set(['moveStatementUp', 'copyStatementUp'])
+        const direction = upDirectionCommandNames.has(command) ? -1 : 1
 
         const editor = vscode.window.activeTextEditor
         if (editor === undefined) return
 
-        const { document } = editor
+        const { document, selections, selection } = editor
         const configuration = vscode.workspace.getConfiguration(process.env.IDS_PREFIX, document)
         const supportedKinds = configuration.get<Settings['supportedKinds']>('supportedKinds')!
         const rejectDifferentKinds = configuration.get<Settings['rejectDifferentKinds']>('rejectDifferentKinds')!
+
         const builtinCommaHandling = configuration.get<Settings['builtinCommaHandling.enabled']>('builtinCommaHandling.enabled')!
         if (supportedKinds.length === 0) return
         const outline: vscode.DocumentSymbol[] = await vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', document.uri)
         const newSelections: vscode.Selection[] = []
-        for (const selection of editor.selections) {
+        for (const selection of selections) {
             const { start: startPos, end: endPos } = selection
             const findMe = (
                 items: vscode.DocumentSymbol[],
@@ -57,123 +58,19 @@ export const activate = () => {
 
             const match = findMe(outline)
             if (!match) continue
-            // const { current } = match
-            const curRange = match.current.range
-            const swap = moveDirection === 1 ? match.next : match.prev
-            if (!swap) return
-            if (rejectDifferentKinds && swap.kind !== match.current.kind) return
-            const swapRange = swap.range
 
-            // always moved together
-            const surroundedEmptyLines = getWhitespaceLines(
-                moveDirection === 1 ? curRange.end.line : curRange.start.line /* todo swapRange.end.line */,
-                moveDirection,
-                document,
-            )
-            const surroundedEmptyLinesCount = surroundedEmptyLines.length
-            const surroundedEmptyLinesContent = surroundedEmptyLines.length > 0 ? `\n${surroundedEmptyLines.join('\n')}` : ''
+            // eslint-disable-next-line no-await-in-loop
+            const linesDiff = await moveStatement(editor, direction, match, { rejectDifferentKinds, builtinCommaHandling })
 
-            const currentLinesRange = new vscode.Range(curRange.start.with(undefined, 0), curRange.end.with(undefined, Number.POSITIVE_INFINITY))
-
-            const currentLinesContent = document.getText(currentLinesRange)
-            // if (moveDirection === 1) currentLinesContent = `${surroundedEmptyLinesContent}${currentLinesContent}`
-            // else currentLinesContent += surroundedEmptyLinesContent
-            const currentLinesRemoveRange =
-                moveDirection === -1
-                    ? currentLinesRange.with({
-                          start: currentLinesRange.start.translate(-surroundedEmptyLinesCount),
-                          end: expandPosWithEol(1, currentLinesRange.end, document),
-                      })
-                    : currentLinesRange.with(
-                          expandPosWithEol(-1, currentLinesRange.start, document),
-                          currentLinesRange.end.translate(surroundedEmptyLinesCount),
-                      )
-
-            const linesBetween = moveDirection === 1 ? swapRange.start.line - curRange.end.line : curRange.start.line - swapRange.end.line
-            const linesDiff = (swapRange.end.line - swapRange.start.line + linesBetween) * moveDirection
-
-            const getCommaHandledContent = (content: string) => {
-                const contentClean = content.replace(/[\n\s]+$/, '')
-                return {
-                    contentClean,
-                    endsComma: contentClean.endsWith(','),
-                }
-            }
-
-            const { contentClean, endsComma } = getCommaHandledContent(currentLinesContent)
-
-            const swapLinesRange = swapRange.with({ end: swapRange.end.with(undefined, Number.POSITIVE_INFINITY) })
-            const swapContent = document.getText(swapLinesRange)
-            const { contentClean: swapContentClean, endsComma: swapEndsComma } = getCommaHandledContent(swapContent)
-            const handlePrevContentComma = (edit: vscode.TextEditorEdit) => {
-                if (!builtinCommaHandling) return
-                // todo check also range end
-                const endPos = offsetPosition(document, swapRange.start, swapContentClean.length)
-                if (moveDirection === 1 && match.isNextLast && !swapEndsComma) edit.insert(endPos, ',')
-                if (moveDirection === -1 && match.isCurrentLast && swapEndsComma) edit.delete(new vscode.Range(endPos.translate(0, -1), endPos))
-                return swapEndsComma
-            }
-
-            const newContentHandled = (): string => {
-                const content = currentLinesContent
-                if (!endsComma && !swapEndsComma) return content
-                if (!builtinCommaHandling) return content
-                // todo check also range end, end+1
-                if (moveDirection === 1 && match.isNextLast && endsComma) return content.slice(0, contentClean.length - 1) + content.slice(contentClean.length)
-                if (moveDirection === -1 && match.isCurrentLast && !endsComma)
-                    return `${content.slice(0, contentClean.length)},${content.slice(contentClean.length)}`
-
-                return content
-            }
-
-            await editor.edit(edit => {
-                if (endsComma || swapEndsComma) handlePrevContentComma(edit)
-
-                edit.delete(currentLinesRemoveRange)
-
-                if (moveDirection === -1) edit.insert(swapRange.start.with(undefined, 0), `${newContentHandled()}\n${surroundedEmptyLinesContent}`)
-                else edit.insert(swapRange.end.with(undefined, Number.POSITIVE_INFINITY), `\n${surroundedEmptyLinesContent}${newContentHandled()}`)
-            })
-            newSelections.push(new vscode.Selection(selection.start.translate(linesDiff), selection.end.translate(linesDiff)))
+            newSelections.push(new vscode.Selection(startPos.translate(linesDiff), endPos.translate(linesDiff)))
         }
 
         editor.selections = newSelections
-        editor.revealRange(editor.selection)
+        editor.revealRange(selection)
     }
 
     registerAllExtensionCommands({
         moveStatementDown: mainCommandHandler,
         moveStatementUp: mainCommandHandler,
     })
-}
-
-function getLineSafe(document: vscode.TextDocument, line: number) {
-    try {
-        return document.lineAt(line)
-    } catch {
-        return null
-    }
-}
-
-function expandPosWithEol(direction: -1 | 1, pos: vscode.Position, document: vscode.TextDocument) {
-    if (direction === -1) {
-        const prevLine = getLineSafe(document, pos.line - 1)
-        return prevLine?.range.end ?? pos
-    }
-
-    return document.lineAt(pos).rangeIncludingLineBreak.end
-}
-
-function getWhitespaceLines(lineNum: number, direction: 1 | -1, document: vscode.TextDocument) {
-    const lines: string[] = []
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-        lineNum += direction
-        const line = getLineSafe(document, lineNum)
-        if (!line || !line.isEmptyOrWhitespace) break
-        // keep whitespaces as is, not our problem
-        lines.push(line.text)
-    }
-
-    return lines
 }
