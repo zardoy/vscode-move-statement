@@ -41,5 +41,7 @@ export default async (
         if (direction === -1) edit.insert(curRange.start.with(undefined, 0), `${newContentHandled()}${surroundedEmptyLinesContent}\n`)
         else edit.insert(curRange.end.with(undefined, Number.POSITIVE_INFINITY), `\n${surroundedEmptyLinesContent}${newContentHandled()}`)
     })
-    return (curRange.end.line - curRange.start.line) * direction
+    const lineDiff = (curRange.end.line - curRange.start.line) * direction
+    if (direction === -1 && Math.abs(lineDiff) > curRange.start.line) return 0
+    return lineDiff
 }
