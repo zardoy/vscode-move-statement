@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { offsetPosition } from '@zardoy/vscode-utils/build/position'
-import { expandPosWithEol, getCommaHandledContent, getWhitespaceLines } from './shared'
+import { expandPosWithEol, getCommaHandledContent, getWhitespaceLines, getHandledContent } from './shared'
 
 export default async (
     editor: vscode.TextEditor,
@@ -61,24 +61,16 @@ export default async (
         return swapEndsComma
     }
 
-    const newContentHandled = (): string => {
-        if ((!endsComma && !swapEndsComma) || !builtinCommaHandling) return currentLinesContent
-        // todo check also range end, end+1
-        if (direction === 1 && match.isNextLast && endsComma)
-            return currentLinesContent.slice(0, contentClean.length - 1) + currentLinesContent.slice(contentClean.length)
-        if (direction === -1 && match.isCurrentLast && !endsComma)
-            return `${currentLinesContent.slice(0, contentClean.length)},${currentLinesContent.slice(contentClean.length)}`
-
-        return currentLinesContent
-    }
+    const contentToInsert =
+        (!endsComma && !swapEndsComma) || !builtinCommaHandling ? currentLinesContent : getHandledContent(currentLinesContent, direction, match)
 
     await editor.edit(edit => {
         if (endsComma || swapEndsComma) handlePrevContentComma(edit)
 
         edit.delete(currentLinesRemoveRange)
 
-        if (direction === -1) edit.insert(swapRange.start.with(undefined, 0), `${newContentHandled()}\n${surroundedEmptyLinesContent}`)
-        else edit.insert(swapRange.end.with(undefined, Number.POSITIVE_INFINITY), `\n${surroundedEmptyLinesContent}${newContentHandled()}`)
+        if (direction === -1) edit.insert(swapRange.start.with(undefined, 0), `${contentToInsert}\n${surroundedEmptyLinesContent}`)
+        else edit.insert(swapRange.end.with(undefined, Number.POSITIVE_INFINITY), `\n${surroundedEmptyLinesContent}${contentToInsert}`)
     })
     return (swapRange.end.line - swapRange.start.line + linesBetween) * direction
 }

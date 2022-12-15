@@ -1,5 +1,25 @@
 import * as vscode from 'vscode'
 
+export const getHandledContent = (
+    currentLinesContent: string,
+    direction: -1 | 1,
+    match:
+        | Record<'prev' | 'current' | 'next', vscode.DocumentSymbol | undefined> & {
+              current: vscode.DocumentSymbol
+              isCurrentLast: boolean
+              isNextLast: boolean
+          },
+): string => {
+    const { contentClean, endsComma } = getCommaHandledContent(currentLinesContent)
+    // todo check also range end, end+1
+    if (direction === 1 && match.isNextLast && endsComma)
+        return currentLinesContent.slice(0, contentClean.length - 1) + currentLinesContent.slice(contentClean.length)
+    if (direction === -1 && match.isCurrentLast && !endsComma)
+        return `${currentLinesContent.slice(0, contentClean.length)},${currentLinesContent.slice(contentClean.length)}`
+
+    return currentLinesContent
+}
+
 export const getCommaHandledContent = (content: string) => {
     const contentClean = content.replace(/[\n\s]+$/, '')
     return {
