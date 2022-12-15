@@ -28,7 +28,6 @@ export default async (
 
     const newContentHandled = (): string => {
         if (!endsComma || !builtinCommaHandling) return currentLinesContent
-        // todo check also range end, end+1
         if (direction === 1 && match.isNextLast && endsComma)
             return currentLinesContent.slice(0, contentClean.length - 1) + currentLinesContent.slice(contentClean.length)
         if (direction === -1 && match.isCurrentLast && !endsComma)
@@ -41,7 +40,10 @@ export default async (
         if (direction === -1) edit.insert(curRange.start.with(undefined, 0), `${newContentHandled()}${surroundedEmptyLinesContent}\n`)
         else edit.insert(curRange.end.with(undefined, Number.POSITIVE_INFINITY), `\n${surroundedEmptyLinesContent}${newContentHandled()}`)
     })
-    const lineDiff = (curRange.end.line - curRange.start.line) * direction
-    if (direction === -1 && Math.abs(lineDiff) > curRange.start.line) return 0
-    return lineDiff
+    if (direction === -1) return 0
+
+    const lineDiff = curRange.end.line - curRange.start.line
+    if (lineDiff === 0) return 1
+
+    return lineDiff * 2 + 1
 }

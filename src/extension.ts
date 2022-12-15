@@ -18,9 +18,11 @@ export const activate = () => {
         const rejectDifferentKinds = configuration.get<Settings['rejectDifferentKinds']>('rejectDifferentKinds')!
 
         const builtinCommaHandling = configuration.get<Settings['builtinCommaHandling.enabled']>('builtinCommaHandling.enabled')!
-        const { handler, affectingConfiguration } = command.startsWith('copy')
-            ? { handler: copyStatement, affectingConfiguration: { builtinCommaHandling } }
-            : { handler: moveStatement, affectingConfiguration: { builtinCommaHandling, rejectDifferentKinds } }
+        const commandAction = command.startsWith('copy') ? 'copy' : 'move'
+        const { handler, affectingConfiguration } =
+            commandAction === 'copy'
+                ? { handler: copyStatement, affectingConfiguration: { builtinCommaHandling } }
+                : { handler: moveStatement, affectingConfiguration: { builtinCommaHandling, rejectDifferentKinds } }
 
         if (supportedKinds.length === 0) return
         const outline: vscode.DocumentSymbol[] = await vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', document.uri)
@@ -67,7 +69,14 @@ export const activate = () => {
             // eslint-disable-next-line no-await-in-loop
             const linesDiff = await handler(editor, direction, match, affectingConfiguration)
 
-            newSelections.push(new vscode.Selection(startPos.translate(linesDiff), endPos.translate(linesDiff)))
+            if (commandAction === 'move') newSelections.push(new vscode.Selection(startPos.translate(linesDiff), endPos.translate(linesDiff)))
+            else
+                newSelections.push(
+                    new vscode.Selection(
+                        match.current.range.start.with(undefined, startPos.character).translate(linesDiff),
+                        match.current.range.start.with(undefined, startPos.character).translate(linesDiff),
+                    ),
+                )
         }
 
         editor.selections = newSelections
