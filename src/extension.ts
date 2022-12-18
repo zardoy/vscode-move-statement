@@ -27,7 +27,7 @@ export const activate = () => {
         if (supportedKinds.length === 0) return
         const outline: vscode.DocumentSymbol[] = await vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', document.uri)
         const newSelections: vscode.Selection[] = []
-        for (const selection of selections) {
+        for await (const selection of selections) {
             const { start: startPos, end: endPos } = selection
             const findMe = (
                 items: vscode.DocumentSymbol[],
@@ -66,7 +66,6 @@ export const activate = () => {
             const match = findMe(outline)
             if (!match) continue
 
-            // eslint-disable-next-line no-await-in-loop
             const linesDiff = await handler(editor, direction, match, affectingConfiguration)
 
             if (commandAction === 'move') newSelections.push(new vscode.Selection(startPos.translate(linesDiff), endPos.translate(linesDiff)))

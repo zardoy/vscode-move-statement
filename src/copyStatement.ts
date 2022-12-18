@@ -23,10 +23,13 @@ export default async (
     const { endsComma } = getCommaHandledContent(currentLinesContent)
 
     const contentToInsert = !endsComma || !builtinCommaHandling ? currentLinesContent : getHandledContent(currentLinesContent, direction, match)
-    await editor.edit(edit => {
-        if (direction === -1) edit.insert(curRange.start.with(undefined, 0), `${contentToInsert}\n`)
-        else edit.insert(curRange.end.with(undefined, Number.POSITIVE_INFINITY), `\n${contentToInsert}`)
-    })
+    await editor.edit(
+        edit => {
+            if (direction === -1) edit.insert(curRange.start.with(undefined, 0), `${contentToInsert}\n`)
+            else edit.insert(curRange.end.with(undefined, Number.POSITIVE_INFINITY), `\n${contentToInsert}`)
+        },
+        { undoStopAfter: false, undoStopBefore: false }, // undo all edits with one `undo` command in multicursor case
+    )
     if (direction === -1) return 0
 
     const lineDiff = curRange.end.line - curRange.start.line
